@@ -49,8 +49,8 @@ async def create_user_db(
 
 
 @app.post("/login/")
-def login(login_data: LoginRequest, db: Session = (Depends(get_db))):
-    user = authenticate_user(db, login_data.username, login_data.password)
+def login(login_data: UserCreate, db: Session = (Depends(get_db))):
+    user = authenticate_user(db, UserCreate.username, UserCreate.password)
 
     if not user:
         raise HTTPException(401, "Invalid username or password")
