@@ -60,7 +60,10 @@ def login(login_data: UserCreate, db: Session = (Depends(get_db))):
         "id_user": user.id_user,
         "username": user.username
     }
-                  
+
+@app.get("/projects")
+async def get_all_projects_user():
+    pass
 
 
 """
