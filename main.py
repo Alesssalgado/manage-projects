@@ -23,9 +23,9 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/user/{user_id}")
-async def get_user_db(user_id: int, db: Session = (Depends(get_db))):
-    user = get_user(db, user_id)
+@app.get("/user/{id_user}")
+async def get_user_db(id_user: int, db: Session = (Depends(get_db))):
+    user = get_user(db, id_user)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
@@ -42,7 +42,7 @@ async def create_user_db(
    
    user = create_user(db, data_user.username, data_user.password)
    return {
-       "user_id": user.user_id,
+       "id_user": user.id_user,
        "username": user.username,
        "message": "User created successfully"
    }
@@ -57,7 +57,7 @@ def login(login_data: UserCreate, db: Session = (Depends(get_db))):
     
     return {
         "message": "Login successful",
-        "user_id": user.user_id,
+        "id_user": user.id_user,
         "username": user.username
     }
                   
