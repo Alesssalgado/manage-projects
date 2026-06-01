@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models import User
+from models import User, Project
 from hashlib import sha1
 
 def get_user(db: Session, id_user: int):
@@ -30,8 +30,12 @@ def authenticate_user(db: Session, username: str, password: str):
         return None
     return user
 
-def get_projects():
-    pass
+def create_project(db: Session, name: str, description: str, invite: str):
+    db_project = Project(name=name, description=description, invite=invite)
+    db.add(db_project)
+    db.commit()
+    db.refresh(db_project)
+    return db_project
 
 #print(CreateTable(User.__table__).compile(engine))
 

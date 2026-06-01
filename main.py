@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
-from models import Base, UserCreate
+from models import Base, UserCreate, ProjectCreate, DocumentCreate
 from crud_posgresql import (create_user, get_user,
-                             get_user_by_username, authenticate_user,)
+                             get_user_by_username, authenticate_user, create_project)
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
 #from config import settings
@@ -47,10 +47,26 @@ async def create_user_db(
        "message": "User created successfully"
    }
 
+@app.post("/projects")
+async def create_project_db(
+    data_project: ProjectCreate,
+    db: Session = (Depends(get_db))):
 
-@app.post("/login/")
+    project = create_project(db, data_project.name,
+              data_project.description, data_project.invite)
+
+    return {
+       "id_project": project.id_project,
+       "description": project.description,
+       "user": project.invite,
+       "message": "User created successfully"
+   }
+
+
+
+@app.post("/login")
 def login(login_data: UserCreate, db: Session = (Depends(get_db))):
-    user = authenticate_user(db, UserCreate.username, UserCreate.password)
+    user = authenticate_user(db, login_data.username, login_data.password)
 
     if not user:
         raise HTTPException(401, "Invalid username or password")
