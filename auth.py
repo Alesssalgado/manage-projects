@@ -1,59 +1,52 @@
-"""
-from fastapi import HTTPException, Depends, status
+from datetime import datetime, timedelta, timezone
+from typing import Optional
+import jwt
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session
-from jose import JWTError, jwt
-from database import SessionLocal
-from models import User
+from models import TokenData
 from config import settings
+import os
 
-security = HTTPBearer()
 
-def get_db():
-    db = SessionLocal()
+
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 120
+
+bearer_scheme = HTTPBearer()
+
+
+def create_access_token(id_user: int, username: str) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    payload = {
+        "sub": str(id_user),
+        "username": username,
+        "exp": expire,
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_access_token(token: str) -> TokenData:
     try:
-        yield db
-    finally:
-        db.close()
-
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
-):
-    """
-    Obtener usuario actual desde el token JWT.
-    Similar al decorador @auth_required de Flask.
-    """
-    token = credentials.credentials
-    
-    try:
-        # Decodificar token
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        username: str = payload.get("username")
-        
-        if username is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token"
-            )
-        
-        # Verificar que el usuario existe
-        user = db.query(User).filter(User.username == username).first()
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not found"
-            )
-        
-        return user
-        
-    except JWTError:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        id_user: int = int(payload["sub"])
+        username: str = payload["username"]
+        return TokenData(id_user=id_user, username=username)
+    except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-    
-def logout():
-    pass
+    except jwt.InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-"""
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+) -> TokenData:
+    return decode_access_token(credentials.credentials)

@@ -10,7 +10,9 @@ from typing import List
 from config import settings
 from sqlalchemy.ext.declarative import declarative_base
 
-#load_dotenv()
+
+
+
 
 
 DATABASE_URL = settings.DATABASE_URL
