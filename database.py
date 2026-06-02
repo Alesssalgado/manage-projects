@@ -1,18 +1,8 @@
 import os
-from sqlalchemy  import (String, Boolean, ForeignKey, DateTime,
-                         create_engine, Text,)
-from sqlalchemy.orm import (DeclarativeBase, Mapped, mapped_column,
-relationship, sessionmaker,)
-from sqlalchemy.sql.ddl import CreateTable
-from datetime import datetime
-from dotenv import load_dotenv
-from typing import List
+from sqlalchemy  import create_engine
+from sqlalchemy.orm import  sessionmaker
 from config import settings
 from sqlalchemy.ext.declarative import declarative_base
-
-
-
-
 
 
 DATABASE_URL = settings.DATABASE_URL

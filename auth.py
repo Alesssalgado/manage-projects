@@ -3,9 +3,8 @@ from typing import Optional
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from models import TokenData
+from schemas import TokenData
 from config import settings
-import os
 
 
 

@@ -184,7 +184,7 @@ def create_document(
 
     doc = Document(
         name=name,
-        filename=upload_file.filename or stored_name,
+        #filename=upload_file.filename or stored_name,
         filepath=str(filepath),
         id_project2=project_id,
     )

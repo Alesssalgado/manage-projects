@@ -10,20 +10,20 @@ from sqlalchemy.orm import Session
 
 from auth import create_access_token, get_current_user
 from database import SessionLocal, engine
-from models import (
-    Base, DocumentOut, DocumentUpdate, ProjectCreate,
-    ProjectOut, ProjectUpdate, Token, TokenData,
-    UserCreate, UserLogin, UserOut, UserRole,
+from models import Base,  UserRole
+
+from schemas import (
+    DocumentOut, DocumentUpdate,
+    ProjectCreate, ProjectOut, ProjectUpdate,
+    Token, TokenData,
+    UserCreate, UserLogin, UserOut,
 )
 import crud_postgresql as crud
 
-# ──────────────────────────────────────────────
-# App & DB setup
-# ──────────────────────────────────────────────
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Project Management API", version="1.0.0")
+app = FastAPI(title="Project Management")
 
 
 def get_db():
@@ -34,9 +34,6 @@ def get_db():
         db.close()
 
 
-# ──────────────────────────────────────────────
-# Shared helpers
-# ──────────────────────────────────────────────
 
 def _require_project_access(project_id: int, current_user: TokenData, db: Session):
     """Return (project, project_user) or raise 403/404."""
@@ -56,10 +53,6 @@ def _require_owner(link, action: str = "perform this action"):
             detail=f"Only the project owner can {action}.",
         )
 
-
-# ──────────────────────────────────────────────
-# Auth endpoints
-# ──────────────────────────────────────────────
 
 @app.post(
     "/auth",
@@ -89,10 +82,6 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
     token = create_access_token(user.id_user, user.username)
     return {"access_token": token, "token_type": "bearer"}
 
-
-# ──────────────────────────────────────────────
-# Project endpoints
-# ──────────────────────────────────────────────
 
 @app.post(
     "/projects",
@@ -202,10 +191,6 @@ def invite_user(
     }
 
 
-# ──────────────────────────────────────────────
-# Document endpoints
-# ──────────────────────────────────────────────
-
 @app.get(
     "/project/{project_id}/documents",
     response_model=list[DocumentOut],
@@ -234,12 +219,22 @@ def upload_documents(
     current_user: TokenData = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    ALLOWED_EXTENSIONS = {".pdf", ".docx"}
     _require_project_access(project_id, current_user, db)
     created = []
+
     for upload in files:
-        doc_name = Path(upload.filename).stem if upload.filename else "untitled"
+        file_ext = Path(upload.filename).suffix.lower()
+        if file_ext not in ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=415,
+                detail=f"Don't support: {file_ext}. Only allow PDF and DOCX"
+            )
+        
+        doc_name = upload.filename if upload.filename else "untitled"
         doc = crud.create_document(db, project_id, doc_name, upload)
         created.append(doc)
+    
     return created
 
 
@@ -290,11 +285,10 @@ def update_document(
     if name is None and file is None:
         raise HTTPException(status_code=422, detail="Provide a new name and/or a replacement file.")
 
-    # Validate name if provided
     if name is not None:
         name = name.strip()
         if not name:
-            raise HTTPException(status_code=422, detail="Document name must not be empty.")
+            raise HTTPException(status_code=422, detail="Document name  not be empty.")
 
     doc = crud.update_document(db, doc, name, file)
     return doc
