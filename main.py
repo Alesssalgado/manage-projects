@@ -34,9 +34,7 @@ def get_db():
         db.close()
 
 
-
 def _require_project_access(project_id: int, current_user: TokenData, db: Session):
-    """Return (project, project_user) or raise 403/404."""
     project = crud.get_project(db, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -46,11 +44,11 @@ def _require_project_access(project_id: int, current_user: TokenData, db: Sessio
     return project, link
 
 
-def _require_owner(link, action: str = "perform this action"):
+def _require_owner(link, action: str = "administrator"):
     if link.TypeUser != UserRole.admin:
         raise HTTPException(
             status_code=403,
-            detail=f"Only the project owner can {action}.",
+            detail=f"Only the project owner(admin) can {action}.",
         )
 
 
@@ -73,7 +71,7 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
     "/login",
     response_model=Token,
     tags=["Auth"],
-    summary="Login and receive a JWT",
+    summary="Login and Token JWT",
 )
 def login(data: UserLogin, db: Session = Depends(get_db)):
     user = crud.authenticate_user(db, data.username, data.password)
@@ -87,8 +85,8 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
     "/projects",
     response_model=ProjectOut,
     status_code=status.HTTP_201_CREATED,
-    tags=["Projects"],
-    summary="Create a project (caller becomes admin)",
+    tags=["Project"],
+    summary="Create a project",
 )
 def create_project(
     data: ProjectCreate,
@@ -102,8 +100,8 @@ def create_project(
 @app.get(
     "/projects",
     response_model=list[ProjectOut],
-    tags=["Projects"],
-    summary="List all projects accessible to the current user",
+    tags=["Project"],
+    summary="List all projects",
 )
 def list_projects(
     current_user: TokenData = Depends(get_current_user),
@@ -115,8 +113,8 @@ def list_projects(
 @app.get(
     "/project/{project_id}/info",
     response_model=ProjectOut,
-    tags=["Projects"],
-    summary="Get project details (requires access)",
+    tags=["Project"],
+    summary="Get project details",
 )
 def get_project_info(
     project_id: int,
@@ -130,8 +128,8 @@ def get_project_info(
 @app.put(
     "/project/{project_id}/info",
     response_model=ProjectOut,
-    tags=["Projects"],
-    summary="Update project name / description (any member can update)",
+    tags=["Project"],
+    summary="Update project name/description",
 )
 def update_project_info(
     project_id: int,
@@ -149,8 +147,8 @@ def update_project_info(
 @app.delete(
     "/project/{project_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    tags=["Projects"],
-    summary="Delete a project (owner only)",
+    tags=["Project"],
+    summary="Delete a project",
 )
 def delete_project(
     project_id: int,
@@ -165,8 +163,8 @@ def delete_project(
 @app.post(
     "/project/{project_id}/invite",
     status_code=status.HTTP_200_OK,
-    tags=["Projects"],
-    summary="Invite a user to the project (owner only)",
+    tags=["Project"],
+    summary="Invite a user to the project",
 )
 def invite_user(
     project_id: int,
@@ -187,14 +185,14 @@ def invite_user(
         raise HTTPException(status_code=409, detail=str(e))
 
     return {
-        "message": f"User '{user}' has been granted participant access to project {project_id}."
+        "message": f"User '{user}' now participant access to project {project_id}."
     }
 
 
 @app.get(
     "/project/{project_id}/documents",
     response_model=list[DocumentOut],
-    tags=["Documents"],
+    tags=["Document"],
     summary="List all documents in a project",
 )
 def list_documents(
@@ -210,7 +208,7 @@ def list_documents(
     "/project/{project_id}/documents",
     response_model=list[DocumentOut],
     status_code=status.HTTP_201_CREATED,
-    tags=["Documents"],
+    tags=["Document"],
     summary="Upload one or more documents to a project",
 )
 def upload_documents(
@@ -240,8 +238,8 @@ def upload_documents(
 
 @app.get(
     "/document/{document_id}",
-    tags=["Documents"],
-    summary="Download a document (user must have project access)",
+    tags=["Document"],
+    summary="Download a document",
 )
 def download_document(
     document_id: int,
@@ -267,12 +265,12 @@ def download_document(
 @app.put(
     "/document/{document_id}",
     response_model=DocumentOut,
-    tags=["Documents"],
-    summary="Update document name and/or replace the file",
+    tags=["Document"],
+    summary="Update document",
 )
 def update_document(
     document_id: int,
-    name: Optional[str] = Form(None, description="New display name for the document"),
+    name: Optional[str] = Form(None, description="New name for the document"),
     file: Optional[UploadFile] = File(None, description="Replacement file (optional)"),
     current_user: TokenData = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -297,8 +295,8 @@ def update_document(
 @app.delete(
     "/document/{document_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    tags=["Documents"],
-    summary="Delete a document (owner only)",
+    tags=["Document"],
+    summary="Delete a document (admin only)",
 )
 def delete_document(
     document_id: int,
