@@ -1,85 +1,38 @@
 from typing import Optional
 from pathlib import Path
+from fastapi.responses import FileResponse
+from sqlalchemy.orm import Session
+from auth import create_access_token, get_current_user
+from database import engine
+from models import Base,  UserRole
+import crud_postgresql as crud
+from .routers import users
 
 from fastapi import (
     Depends, FastAPI, File, Form, HTTPException, Query,
     UploadFile, status,
 )
-from fastapi.responses import FileResponse
-from sqlalchemy.orm import Session
-
-from auth import create_access_token, get_current_user
-from database import SessionLocal, engine
-from models import Base,  UserRole
 
 from schemas import (
-    DocumentOut, DocumentUpdate,
     ProjectCreate, ProjectOut, ProjectUpdate,
     Token, TokenData,
     UserCreate, UserLogin, UserOut,
 )
-import crud_postgresql as crud
+
+from dependecies import(
+    _require_project_access,
+    get_db,
+    _require_owner,
+    get_current_user,
+
+)
 
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Project Management")
 
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-def _require_project_access(project_id: int, current_user: TokenData, db: Session):
-    project = crud.get_project(db, project_id)
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-    link = crud.get_project_user(db, project_id, current_user.id_user)
-    if not link:
-        raise HTTPException(status_code=403, detail="You do not have access to this project")
-    return project, link
-
-
-def _require_owner(link, action: str = "administrator"):
-    if link.TypeUser != UserRole.admin:
-        raise HTTPException(
-            status_code=403,
-            detail=f"Only the project owner(admin) can {action}.",
-        )
-
-
-@app.post(
-    "/auth",
-    response_model=UserOut,
-    status_code=status.HTTP_201_CREATED,
-    tags=["Auth"],
-    summary="Register a new user",
-)
-def register(data: UserCreate, db: Session = Depends(get_db)):
-    try:
-        user = crud.create_user(db, data.username, data.password)
-    except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e))
-    return user
-
-
-@app.post(
-    "/login",
-    response_model=Token,
-    tags=["Auth"],
-    summary="Login and Token JWT",
-)
-def login(data: UserLogin, db: Session = Depends(get_db)):
-    user = crud.authenticate_user(db, data.username, data.password)
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid username or password.")
-    token = create_access_token(user.id_user, user.username)
-    return {"access_token": token, "token_type": "bearer"}
-
+app.include_router(users.router)
 
 @app.post(
     "/projects",
@@ -88,7 +41,7 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
     tags=["Project"],
     summary="Create a project",
 )
-def create_project(
+async def create_project(
     data: ProjectCreate,
     current_user: TokenData = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -103,7 +56,7 @@ def create_project(
     tags=["Project"],
     summary="List all projects",
 )
-def list_projects(
+async def list_projects(
     current_user: TokenData = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -116,7 +69,7 @@ def list_projects(
     tags=["Project"],
     summary="Get project details",
 )
-def get_project_info(
+async def get_project_info(
     project_id: int,
     current_user: TokenData = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -131,7 +84,7 @@ def get_project_info(
     tags=["Project"],
     summary="Update project name/description",
 )
-def update_project_info(
+async def update_project_info(
     project_id: int,
     data: ProjectUpdate,
     current_user: TokenData = Depends(get_current_user),
@@ -150,7 +103,7 @@ def update_project_info(
     tags=["Project"],
     summary="Delete a project",
 )
-def delete_project(
+async def delete_project(
     project_id: int,
     current_user: TokenData = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -166,7 +119,7 @@ def delete_project(
     tags=["Project"],
     summary="Invite a user to the project",
 )
-def invite_user(
+async def invite_user(
     project_id: int,
     user: str = Query(..., description="Username of the user to invite"),
     current_user: TokenData = Depends(get_current_user),
@@ -195,7 +148,7 @@ def invite_user(
     tags=["Document"],
     summary="List all documents in a project",
 )
-def list_documents(
+async def list_documents(
     project_id: int,
     current_user: TokenData = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -211,7 +164,7 @@ def list_documents(
     tags=["Document"],
     summary="Upload one or more documents to a project",
 )
-def upload_documents(
+async def upload_documents(
     project_id: int,
     files: list[UploadFile] = File(..., description="One or more files to upload"),
     current_user: TokenData = Depends(get_current_user),
@@ -241,7 +194,7 @@ def upload_documents(
     tags=["Document"],
     summary="Download a document",
 )
-def download_document(
+async def download_document(
     document_id: int,
     current_user: TokenData = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -268,7 +221,7 @@ def download_document(
     tags=["Document"],
     summary="Update document",
 )
-def update_document(
+async def update_document(
     document_id: int,
     name: Optional[str] = Form(None, description="New name for the document"),
     file: Optional[UploadFile] = File(None, description="Replacement file (optional)"),
@@ -298,7 +251,7 @@ def update_document(
     tags=["Document"],
     summary="Delete a document (admin only)",
 )
-def delete_document(
+async def delete_document(
     document_id: int,
     current_user: TokenData = Depends(get_current_user),
     db: Session = Depends(get_db),

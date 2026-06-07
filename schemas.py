@@ -10,20 +10,28 @@ class UserCreate(BaseModel):
 
     @field_validator("username")
     @classmethod
-    def username_not_empty(cls, v: str) -> str:
-        v = v.strip()
-        if not v:
+    def username_not_empty(cls, username: str) -> str:
+        value = username.strip()
+        if not value:
             raise ValueError("Username must not be empty.")
-        if len(v) < 3:
+        if len(value) < 3:
             raise ValueError("Username must be at least 3 characters.")
-        return v
+        return value
 
+    """
     @field_validator("password")
     @classmethod
     def password_strength(cls, v: str) -> str:
         if len(v) < 3:
             raise ValueError("Password must be at least 3 characters.")
         return v
+    """
+    @field_validator("password")
+    @classmethod
+    def password_strength(cls, password: str) -> str:
+        if len(password) < 3:
+            raise ValueError("Password must be at least 3 characters.")
+        return password
 
     @model_validator(mode="after")
     def passwords_match(self) -> "UserCreate":
@@ -61,11 +69,11 @@ class ProjectCreate(BaseModel):
 
     @field_validator("name")
     @classmethod
-    def name_not_empty(cls, v: str) -> str:
-        v = v.strip()
-        if not v:
+    def name_not_empty(cls, name: str) -> str:
+        value = name.strip()
+        if not value:
             raise ValueError("Project name not be empty")
-        return v
+        return value
 
 
 class ProjectUpdate(BaseModel):
@@ -74,12 +82,12 @@ class ProjectUpdate(BaseModel):
 
     @field_validator("name")
     @classmethod
-    def name_not_empty(cls, v: Optional[str]) -> Optional[str]:
-        if v is not None:
-            v = v.strip()
-            if not v:
+    def name_not_empty(cls, name: Optional[str]) -> Optional[str]:
+        if name is not None:
+            value = name.strip()
+            if not value:
                 raise ValueError("Project name not be empty.")
-        return v
+        return value
 
 
 class DocumentOut(BaseModel):
@@ -107,11 +115,11 @@ class DocumentCreate(BaseModel):
 
     @field_validator("name")
     @classmethod
-    def name_not_empty(cls, v: str) -> str:
-        v = v.strip()
-        if not v:
+    def name_not_empty(cls, name: str) -> str:
+        value = name.strip()
+        if not value:
             raise ValueError("Document name must not be empty.")
-        return v
+        return value
 
 
 class DocumentUpdate(BaseModel):
@@ -119,9 +127,9 @@ class DocumentUpdate(BaseModel):
 
     @field_validator("name")
     @classmethod
-    def name_not_empty(cls, v: Optional[str]) -> Optional[str]:
-        if v is not None:
-            v = v.strip()
-            if not v:
+    def name_not_empty(cls, name: Optional[str]) -> Optional[str]:
+        if name is not None:
+            value = name.strip()
+            if not value:
                 raise ValueError("Document name not be empty.")
-        return v
+        return value

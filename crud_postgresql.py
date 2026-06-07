@@ -14,10 +14,6 @@ UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "uploads"))
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
-# ──────────────────────────────────────────────
-# Helpers
-# ──────────────────────────────────────────────
-
 def hash_password(password: str) -> str:
     return sha256(password.encode()).hexdigest()
 
@@ -25,10 +21,6 @@ def hash_password(password: str) -> str:
 def verify_password(plain: str, hashed: str) -> bool:
     return hash_password(plain) == hashed
 
-
-# ──────────────────────────────────────────────
-# Users
-# ──────────────────────────────────────────────
 
 def get_user(db: Session, id_user: int) -> Optional[User]:
     return db.query(User).filter(User.id_user == id_user).first()
@@ -57,10 +49,6 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
         return None
     return user
 
-
-# ──────────────────────────────────────────────
-# Projects
-# ──────────────────────────────────────────────
 
 def create_project(db: Session, name: str, description: Optional[str], owner_id: int) -> Project:
     try:
@@ -133,7 +121,6 @@ def update_project(
 
 
 def delete_project(db: Session, project: Project) -> None:
-    # Remove all stored files for this project's documents
     for doc in project.documents:
         _delete_file(doc.filepath)
     db.delete(project)
@@ -156,10 +143,6 @@ def invite_user_to_project(
     return link
 
 
-# ──────────────────────────────────────────────
-# Documents
-# ──────────────────────────────────────────────
-
 def _delete_file(filepath: str) -> None:
     try:
         Path(filepath).unlink(missing_ok=True)
@@ -173,7 +156,6 @@ def create_document(
     name: str,
     upload_file: UploadFile,
 ) -> Document:
-    # Build a unique filename so collisions don't overwrite each other
     suffix = Path(upload_file.filename).suffix if upload_file.filename else ""
     import uuid
     stored_name = f"{uuid.uuid4().hex}{suffix}"
@@ -184,7 +166,6 @@ def create_document(
 
     doc = Document(
         name=name,
-        #filename=upload_file.filename or stored_name,
         filepath=str(filepath),
         id_project2=project_id,
     )
