@@ -1,21 +1,19 @@
-
 from sqlalchemy.orm import Session
-from auth import create_access_token
-import crud_postgresql as crud
-from dependecies import get_db
+from app.auth import create_access_token
+import app.crud_postgresql as crud
+from app.dependecies import get_db
 from fastapi import (
     Depends, APIRouter, HTTPException, status,
 )
 
-from schemas import (
+from app.schemas import (
     Token,
     UserCreate, UserLogin, UserOut,
 )
 
 
 router = APIRouter(
-    tags=["Users"],
-    dependencies=[Depends(get_db)]
+    tags=["users"]
 )
 
 @router.post(
@@ -35,7 +33,7 @@ async def register(data: UserCreate, db: Session = Depends(get_db)):
 @router.post(
     "/login",
     response_model=Token,
-    summary="Login and Token JWT",
+    summary="Login user",
 )
 async def login(data: UserLogin, db: Session = Depends(get_db)):
     user = crud.authenticate_user(db, data.username, data.password)

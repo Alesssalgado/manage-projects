@@ -1,13 +1,13 @@
 
 from sqlalchemy.orm import Session
-from database import SessionLocal
-from models import UserRole
-import crud_postgresql as crud
+from app.database import SessionLocal
+from app.models import UserRole
+import app.crud_postgresql as crud
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from schemas import TokenData
-from config import settings
+from app.schemas import TokenData
+from app.config import settings
 
 
 SECRET_KEY = settings.SECRET_KEY
@@ -41,24 +41,21 @@ def _require_owner(link, action: str = "administrator"):
         )
     
 
+def _unauthorized(detail: str) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail=detail,
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
 def decode_access_token(token: str) -> TokenData:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        id_user: int = int(payload["sub"])
-        username: str = payload["username"]
-        return TokenData(id_user=id_user, username=username)
+        return TokenData(id_user=int(payload["sub"]), username=payload["username"])
     except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise _unauthorized("Token has expired")
     except jwt.InvalidTokenError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise _unauthorized("Invalid token.")
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),

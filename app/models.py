@@ -2,7 +2,7 @@ from sqlalchemy import String, ForeignKey, DateTime, Text, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from typing import List, Optional
-from database import Base
+from app.database import Base
 from pydantic import BaseModel, field_validator, model_validator
 import enum
 
@@ -18,7 +18,7 @@ class User(Base):
     id_user: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
     password: Mapped[str] = mapped_column(Text, nullable=False)
-    date_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    date_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now().replace(second=0, microsecond=0))
 
     projects: Mapped[List["ProjectUser"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
@@ -32,7 +32,7 @@ class Project(Base):
     id_project: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(Text, nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    date_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    date_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now().replace(second=0, microsecond=0))
 
     users: Mapped[List["ProjectUser"]] = relationship(back_populates="project", cascade="all, delete-orphan")
     documents: Mapped[List["Document"]] = relationship(back_populates="project", cascade="all, delete-orphan")
@@ -63,7 +63,7 @@ class Document(Base):
     id_document: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(Text, nullable=False)
     filepath: Mapped[str] = mapped_column(Text, nullable=False)
-    date_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
+    date_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now().replace(second=0, microsecond=0))
     id_project2: Mapped[int] = mapped_column(ForeignKey("projects.id_project"))
 
     project: Mapped["Project"] = relationship(back_populates="documents")

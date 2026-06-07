@@ -8,7 +8,7 @@ from fastapi import UploadFile
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload
 
-from models import Document, Project, ProjectUser, User, UserRole
+from app.models import Document, Project, ProjectUser, User, UserRole
 
 UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "uploads"))
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,12 @@
+services:
+
+  api:
+    build: .
+    container_name: manage-projects-api
+    ports:
+      - "8000:80"
+    env_file:
+      - .env
+    volumes:
+      - ./uploads:/manage-projects-main/uploads
+    restart: unless-stopped
