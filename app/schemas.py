@@ -18,14 +18,6 @@ class UserCreate(BaseModel):
             raise ValueError("Username must be at least 3 characters.")
         return value
 
-    """
-    @field_validator("password")
-    @classmethod
-    def password_strength(cls, v: str) -> str:
-        if len(v) < 3:
-            raise ValueError("Password must be at least 3 characters.")
-        return v
-    """
     @field_validator("password")
     @classmethod
     def password_strength(cls, password: str) -> str:
