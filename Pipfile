@@ -15,6 +15,7 @@ pydantic = "*"
 pyjwt = "*"
 python-multipart = "*"
 python-jose = "*"
+ruff = "*"
 
 [dev-packages]
 
