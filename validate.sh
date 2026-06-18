@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-set -e   # si algo falla, el script para
+
+set -e 
 
 echo "→ Ruff lint..."
 ruff check .
@@ -7,7 +7,7 @@ ruff check .
 echo "→ Ruff format check..."
 ruff format --check .
 
-echo "→ Compilación Python..."
+echo "→ Compilaction Python..."
 python -m compileall -q .
 
 echo "✓ Todo OK"
