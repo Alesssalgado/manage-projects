@@ -23,8 +23,6 @@ REST API para gestión de proyectos y documentos, construida con **FastAPI** y *
 │   ├── main.py             # Punto de entrada de la aplicación
 │   ├── models.py           # Modelos ORM (SQLAlchemy)
 │   └── schemas.py          # Esquemas de validación (Pydantic)
-├── test/                   # Pruebas unitarias e integración
-├── uploads/                # Archivos subidos por usuarios
 ├── .env                    # Variables de entorno
 ├── docker-compose.yml      # Configuración de servicios Docker
 └── Dockerfile              # Imagen Docker de la aplicación
