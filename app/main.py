@@ -10,6 +10,3 @@ app = FastAPI(title="Project Management")
 app.include_router(users.router)
 app.include_router(projects.router)
 app.include_router(documents.router)
-
-
-

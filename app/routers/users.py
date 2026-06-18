@@ -3,18 +3,22 @@ from app.auth import create_access_token
 import app.crud_postgresql as crud
 from app.dependecies import get_db
 from fastapi import (
-    Depends, APIRouter, HTTPException, status,
+    Depends,
+    APIRouter,
+    HTTPException,
+    status,
 )
 
 from app.schemas import (
     Token,
-    UserCreate, UserLogin, UserOut,
+    UserCreate,
+    UserLogin,
+    UserOut,
 )
 
 
-router = APIRouter(
-    tags=["users"]
-)
+router = APIRouter(tags=["users"])
+
 
 @router.post(
     "/auth",

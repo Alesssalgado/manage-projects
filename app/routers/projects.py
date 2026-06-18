@@ -1,15 +1,19 @@
-
 from sqlalchemy.orm import Session
 from app.models import UserRole
 import app.crud_postgresql as crud
 
 from fastapi import (
-    Depends, APIRouter, HTTPException, Query,
+    Depends,
+    APIRouter,
+    HTTPException,
+    Query,
     status,
 )
 
 from app.schemas import (
-    ProjectCreate, ProjectOut, ProjectUpdate,
+    ProjectCreate,
+    ProjectOut,
+    ProjectUpdate,
     TokenData,
 )
 
@@ -18,12 +22,10 @@ from app.dependecies import (
     get_db,
     _require_owner,
     get_current_user,
-
 )
 
-router = APIRouter(
-    tags=["projects"]
-)
+router = APIRouter(tags=["projects"])
+
 
 @router.post(
     "/projects",
@@ -79,7 +81,9 @@ async def update_project_info(
 ):
     project, _ = _require_project_access(project_id, current_user, db)
     if data.name is None and data.description is None:
-        raise HTTPException(status_code=422, detail="Provide at least one field to update.")
+        raise HTTPException(
+            status_code=422, detail="Provide at least one field to update."
+        )
     project = crud.update_project(db, project, data.name, data.description)
     return project
 
@@ -118,10 +122,10 @@ async def invite_user(
         raise HTTPException(status_code=404, detail=f"User '{user}' not found.")
 
     try:
-        crud.invite_user_to_project(db, project_id, target.id_user, UserRole.participant)
+        crud.invite_user_to_project(
+            db, project_id, target.id_user, UserRole.participant
+        )
     except ValueError as e:
         raise HTTPException(status_code=409, detail=str(e))
 
-    return {
-        "message": f"User '{user}' now participant access to project {project_id}."
-    }
+    return {"message": f"User '{user}' now participant access to project {project_id}."}

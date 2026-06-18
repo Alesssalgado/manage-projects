@@ -1,7 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Optional
 import jwt
-from fastapi.security import HTTPBearer
 from app.config import settings
 
 SECRET_KEY = settings.SECRET_KEY
@@ -17,8 +15,3 @@ def create_access_token(id_user: int, username: str) -> str:
         "exp": expire,
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
-
-
-
-
-

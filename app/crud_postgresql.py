@@ -50,7 +50,9 @@ def authenticate_user(db: Session, username: str, password: str) -> Optional[Use
     return user
 
 
-def create_project(db: Session, name: str, description: Optional[str], owner_id: int) -> Project:
+def create_project(
+    db: Session, name: str, description: Optional[str], owner_id: int
+) -> Project:
     try:
         project = Project(name=name, description=description)
         db.add(project)
@@ -94,7 +96,9 @@ def get_project(db: Session, project_id: int) -> Optional[Project]:
     )
 
 
-def get_project_user(db: Session, project_id: int, user_id: int) -> Optional[ProjectUser]:
+def get_project_user(
+    db: Session, project_id: int, user_id: int
+) -> Optional[ProjectUser]:
     return (
         db.query(ProjectUser)
         .filter(
@@ -158,6 +162,7 @@ def create_document(
 ) -> Document:
     suffix = Path(upload_file.filename).suffix if upload_file.filename else ""
     import uuid
+
     stored_name = f"{uuid.uuid4().hex}{suffix}"
     filepath = UPLOAD_DIR / stored_name
 
@@ -200,6 +205,7 @@ def update_document(
         _delete_file(doc.filepath)
         suffix = Path(upload_file.filename).suffix if upload_file.filename else ""
         import uuid
+
         stored_name = f"{uuid.uuid4().hex}{suffix}"
         filepath = UPLOAD_DIR / stored_name
         with filepath.open("wb") as buf:

@@ -1,4 +1,3 @@
-
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import UserRole
@@ -15,6 +14,7 @@ ALGORITHM = settings.ALGORITHM
 
 bearer_scheme = HTTPBearer()
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -29,7 +29,9 @@ def _require_project_access(project_id: int, current_user: TokenData, db: Sessio
         raise HTTPException(status_code=404, detail="Project not found")
     link = crud.get_project_user(db, project_id, current_user.id_user)
     if not link:
-        raise HTTPException(status_code=403, detail="You do not have access to this project")
+        raise HTTPException(
+            status_code=403, detail="You do not have access to this project"
+        )
     return project, link
 
 
@@ -39,7 +41,7 @@ def _require_owner(link, action: str = "administrator"):
             status_code=403,
             detail=f"Only the project owner(admin) can {action}.",
         )
-    
+
 
 def _unauthorized(detail: str) -> HTTPException:
     return HTTPException(
@@ -47,6 +49,7 @@ def _unauthorized(detail: str) -> HTTPException:
         detail=detail,
         headers={"WWW-Authenticate": "Bearer"},
     )
+
 
 def decode_access_token(token: str) -> TokenData:
     try:
@@ -56,6 +59,7 @@ def decode_access_token(token: str) -> TokenData:
         raise _unauthorized("Token has expired")
     except jwt.InvalidTokenError:
         raise _unauthorized("Invalid token.")
+
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),

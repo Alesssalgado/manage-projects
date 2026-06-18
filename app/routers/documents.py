@@ -6,8 +6,13 @@ import app.crud_postgresql as crud
 from app.schemas import DocumentOut, TokenData
 
 from fastapi import (
-    Depends, APIRouter, File, Form, HTTPException,
-    UploadFile, status,
+    Depends,
+    APIRouter,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+    status,
 )
 
 from app.dependecies import (
@@ -15,12 +20,10 @@ from app.dependecies import (
     get_db,
     _require_owner,
     get_current_user,
-
 )
 
-router = APIRouter(
-    tags=["documents"]
-)
+router = APIRouter(tags=["documents"])
+
 
 @router.get(
     "/project/{project_id}/documents",
@@ -57,13 +60,13 @@ async def upload_documents(
         if file_ext not in ALLOWED_EXTENSIONS:
             raise HTTPException(
                 status_code=415,
-                detail=f"Don't support: {file_ext}. Only allow PDF and DOCX"
+                detail=f"Don't support: {file_ext}. Only allow PDF and DOCX",
             )
-        
+
         doc_name = upload.filename if upload.filename else "untitled"
         doc = crud.create_document(db, project_id, doc_name, upload)
         created.append(doc)
-    
+
     return created
 
 
@@ -110,7 +113,9 @@ async def update_document(
     _require_project_access(doc.id_project2, current_user, db)
 
     if name is None and file is None:
-        raise HTTPException(status_code=422, detail="Provide a new name and/or a replacement file.")
+        raise HTTPException(
+            status_code=422, detail="Provide a new name and/or a replacement file."
+        )
 
     if name is not None:
         name = name.strip()
