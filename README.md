@@ -1,6 +1,6 @@
 # 📁 manage-projects
 
-REST API para gestión de proyectos y documentos, construida con **FastAPI** y **PostgreSQL**.
+REST API para gestión de proyectos y documentos, construida con principalmente **FastAPI** y **PostgreSQL**.
 
 ---
 
